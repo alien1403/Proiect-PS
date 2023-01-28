@@ -1,0 +1,835 @@
+---
+title: "Raport - Repartitii discrete si continue"
+author: "Hanghicel Razvan-Mihai Grupa 241"
+date: "2023-01-28"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: Probabilitati si Statistica
+---
+
+### Introducere
+
+Am creat o aplicatie in care se reprezinta 15 repartitii discrete si continue. Pentru fiecare repartitie se pot selecta parametrii care intra in definitia repartitiei si astfel se traseaza graficele pentru functia de densitate, functia de masa si functia de repartitie. Pentru fiecare repartitie putem adauga valori pentru a si b pentru a putea trasa grafic probabilitati de forma $P(X \le a)$ (reprezentata cu culoarea rosu), $P(X \ge b)$ (reprezentata cu culoarea verde) si $P(a \le X \le b)$ (reprezentata cu culoarea albastru)
+
+### Aplicatia
+
+Pentru a crea aplicatia am folosit librariile **shiny** si **ggplot** pentru a putea reprezenta graficele repartitiilor.
+In partea de **ui** am folosit un **selectInput** pentru a crea un dropdown menu in care poti selecta repartitia la care vrei sa ii vezi reprezentarile grafice. Apoi pentru fiecare repartitie am pus cate un **conditionalPanel** pentru a crea un template corespunzator fiecarei repartitii in care poti seta valori parametrilor specifici pentru fiecare repartitie. Apoi cu **textInput** o sa poti seta valorile parametrilor *a* si *b*. Am folosit **tabsetPanel** pentru a crea un navbar pentru a putea selecta ce tip de grafic sa fie reprezentat
+
+``` {r message=FALSE, warning = FALSE}
+library(shiny)
+library(ggplot2)
+ui <- fluidPage(
+  selectInput("distribution", "Select a Distribution:", c("Binomial", "Normal","Poisson", "Gamma", "Exponential", "Weibull", "Hypergeometric", "Log-normal", "Negative binomial", "Beta", "Fisher", "Cauchy", "Chy-Squared", "Laplace", "Pareto")),
+  conditionalPanel(condition = "input.distribution == 'Binomial'",
+                   textInput("size", "Size:", value = 10),
+                   textInput("prob", "Probability:", value = 0.5)),
+  conditionalPanel(condition = "input.distribution == 'Normal'",
+                   textInput("mean", "Mean:", value = 0),
+                   textInput("sd", "Standard Deviation:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Poisson'",
+                   textInput("lambda", "Lambda:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Gamma'",
+                   textInput("shape", "Shape:", value = 1),
+                   textInput("scale", "Scale:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Exponential'",
+                   textInput("rate", "Rate:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Weibull'",
+                   textInput("shapeW", "Shape:", value = 1),
+                   textInput("scaleW", "Scale:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Hypergeometric'",
+                   textInput("m", "M:", value = 1),
+                   textInput("n", "N:", value = 1),
+                   textInput("k", "K:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Log-normal'",
+                   textInput("ml", "MeanLog:", value = 1),
+                   textInput("sl", "SdLog:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Negative binomial'",
+                   textInput("s", "Size:", value = 1),
+                   textInput("p", "Prob:", value = 1)),
+  conditionalPanel(condition = "input.distribution == 'Beta'",
+                   textInput("s1", "Shape1:", value = 1),
+                   textInput("s2", "Shape2:", value = 1),
+                   textInput("ncp", "Ncp:", value = 1)),
+  
+  conditionalPanel(condition = "input.distribution == 'Fisher'",
+                   textInput("df1", "Df1:", value = 1),
+                   textInput("df2", "Df2:", value = 1),
+                   textInput("ncp", "Ncp:", value = 1)),
+  
+  conditionalPanel(condition = "input.distribution == 'Cauchy'",
+                   textInput("l", "Location:", value = 1),
+                   textInput("s", "Scale:", value = 1)),
+  
+  conditionalPanel(condition = "input.distribution == 'Chy-Squared'",
+                   textInput("df", "Df:", value = 1),
+                   textInput("ncp", "Ncp:", value = 1)),
+  
+  conditionalPanel(condition = "input.distribution == 'Laplace'",
+                   textInput("mu", "Mu:", value = 1),
+                   textInput("sigma", "Sigma:", value = 1)),
+  
+  conditionalPanel(condition = "input.distribution == 'Pareto'",
+                   textInput("aP", "A:", value = 1),
+                   textInput("bP", "B:", value = 1)),
+  
+  textInput("a","a:"),
+  textInput("b","b:"),
+  tabsetPanel(type = "tabs",
+              tabPanel("Density Function", plotOutput("densityPlot")),
+              tabPanel("Mass Function", plotOutput("massPlot")),
+              tabPanel("Repartition Function", plotOutput("cdfPlot"))
+  )
+)
+
+```
+
+## Repartitii
+### 1.Binomial
+Density function: size = 10, prob = 0.5, a = 2, b = 4
+``` {r}
+library(ggplot2)
+size <- 10
+prob <- 0.5
+x <- 0:size
+y <- dbinom(x, size = size, prob = prob)
+ggplot(data.frame(x, y), aes(x, y)) +
+  geom_line() +
+  geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+  geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+  geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: size = 10, prob = 0.5, a = 2, b = 4
+``` {r}
+library(ggplot2)
+size <- 10
+prob <- 0.5
+x <- 0:size
+y <- dbinom(x, size = size, prob = prob, log = TRUE)
+ggplot(data.frame(x, y), aes(x, y)) +
+  geom_line() +
+  geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+  geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+  geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Repartition function: size = 10, prob = 0.5, a = 2, b = 4
+``` {r}
+library(ggplot2)
+size <- 10
+prob <- 0.5
+x <- 0:size
+y <- pbinom(x, size = size, prob = prob)
+ggplot(data.frame(x, y), aes(x, y)) +
+  geom_line() +
+  geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+  geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+  geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+### 2.Normal
+Density function: Mean = 0, Standard deviation = 1, a = -1, b = 1
+``` {r}
+library(ggplot2)
+mean <- 0
+      sd <- 1
+      x <- seq(mean-4*sd, mean+4*sd, length.out = 100)
+      y <- dnorm(x, mean = mean, sd = sd)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=-1], y = y[x<=-1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=-1 & x<=1], y = y[x>=-1 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Mass function: Mean = 0, Standard deviation = 1, a = -1, b = 1
+``` {r}
+library(ggplot2)
+mean <- 0
+      sd <- 1
+      x <- seq(mean-4*sd, mean+4*sd, length.out = 100)
+      y <- dnorm(x, mean = mean, sd = sd, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=-1], y = y[x<=-1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=-1 & x<=1], y = y[x>=-1 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: Mean = 0, Standard deviation = 1, a = -1, b = 1
+``` {r}
+library(ggplot2)
+mean <- 0
+      sd <- 1
+      x <- seq(mean-4*sd, mean+4*sd, length.out = 100)
+      y <- pnorm(x, mean = mean, sd = sd)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=-1], y = y[x<=-1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=-1 & x<=1], y = y[x>=-1 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+
+### 3.Poisson
+
+Density function: Lambda = 5, a = 2, b = 7
+
+``` {r}
+library(ggplot2)
+lambda <- 5
+      x <- 0:30
+      y <- dpois(x, lambda = lambda)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=7], y = y[x>=7]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=7], y = y[x>=2 & x<=7]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Lambda = 5, a = 2, b = 7
+
+``` {r}
+library(ggplot2)
+lambda <- 5
+      x <- 0:30
+      y <- dpois(x, lambda = lambda, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=7], y = y[x>=7]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=7], y = y[x>=2 & x<=7]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: Lambda = 5, a = 2, b = 7
+
+``` {r}
+library(ggplot2)
+lambda <- 5
+      x <- 0:30
+      y <- ppois(x, lambda = lambda)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=7], y = y[x>=7]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=7], y = y[x>=2 & x<=7]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+### 4.Gamma
+
+Density function: Shape = 5, Scale = 1, a = 2, b = 7
+```{r}
+library(ggplot2)
+ shape <- 5
+      scale <- 1
+      x <- seq(0, shape*scale*2, length.out = 100)
+      y <- dgamma(x, shape = shape, scale = scale)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=7], y = y[x>=7]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=7], y = y[x>=2 & x<=7]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Shape = 5, Scale = 1, a = 2, b = 7
+```{r}
+library(ggplot2)
+ shape <- 5
+      scale <- 1
+      x <- seq(0, shape*scale*2, length.out = 100)
+      y <- dgamma(x, shape = shape, scale = scale, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=7], y = y[x>=7]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=7], y = y[x>=2 & x<=7]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Repartition function: Shape = 5, Scale = 1, a = 2, b = 7
+```{r}
+library(ggplot2)
+ shape <- 5
+      scale <- 1
+      x <- seq(0, shape*scale*2, length.out = 100)
+      y <- pgamma(x, shape = shape, scale = scale)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=7], y = y[x>=7]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=7], y = y[x>=2 & x<=7]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+### 5.Exponential
+
+Density function: Rate = 1, a = 0.5, b = 1
+```{r}
+library(ggplot2)
+rate <- 1
+      x <- seq(0, 2/rate, length.out = 100)
+      y <- dexp(x, rate = rate)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0.5], y = y[x<=0.5]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0.5 & x<=1], y = y[x>=0.5 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Rate = 1, a = 0.5, b = 1
+```{r}
+library(ggplot2)
+rate <- 1
+      x <- seq(0, 2/rate, length.out = 100)
+      y <- dexp(x, rate = rate, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0.5], y = y[x<=0.5]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0.5 & x<=1], y = y[x>=0.5 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: Rate = 1, a = 0.5, b = 1
+```{r}
+library(ggplot2)
+rate <- 1
+      x <- seq(0, 2/rate, length.out = 100)
+      y <- pexp(x, rate = rate)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0.5], y = y[x<=0.5]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0.5 & x<=1], y = y[x>=0.5 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+### 6.Weibull
+
+Density function: Shape = 1, Scale = 1, a = 0.5, b = 1 
+```{r}
+library(ggplot2)
+shape <- 1
+      scale <- 1
+      x <- seq(0, shape*scale*2, length.out = 100)
+      y <- dweibull(x, shape = shape, scale = scale)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0.5], y = y[x<=0.5]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0.5 & x<=1], y = y[x>=0.5 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Mass function: Shape = 1, Scale = 1, a = 0.5, b = 1 
+```{r}
+library(ggplot2)
+shape <- 1
+      scale <- 1
+      x <- seq(0, shape*scale*2, length.out = 100)
+      y <- dweibull(x, shape = shape, scale = scale, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0.5], y = y[x<=0.5]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0.5 & x<=1], y = y[x>=0.5 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Repartition function: Shape = 1, Scale = 1, a = 0.5, b = 1 
+```{r}
+library(ggplot2)
+shape <- 1
+      scale <- 1
+      x <- seq(0, shape*scale*2, length.out = 100)
+      y <- pweibull(x, shape = shape, scale = scale)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0.5], y = y[x<=0.5]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0.5 & x<=1], y = y[x>=0.5 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+### 7.Hypergeometric
+
+Density function: M = 3, N = 4, K = 3, a = 1, b = 2
+```{r}
+
+library(ggplot2)
+m <- 3
+      n <- 4
+      k <- 3
+      x <- 0:25
+      y <- dhyper(x, m = m, n = n, k = k)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2], y = y[x>=2]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=2], y = y[x>=1 & x<=2]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: M = 3, N = 4, K = 3, a = 1, b = 2
+```{r}
+
+library(ggplot2)
+m <- 3
+      n <- 4
+      k <- 3
+      x <- 0:25
+      y <- dhyper(x, m = m, n = n, k = k, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2], y = y[x>=2]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=2], y = y[x>=1 & x<=2]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: M = 3, N = 4, K = 3, a = 1, b = 2
+```{r}
+
+library(ggplot2)
+m <- 3
+      n <- 4
+      k <- 3
+      x <- 0:25
+      y <- phyper(x, m = m, n = n, k = k)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2], y = y[x>=2]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=2], y = y[x>=1 & x<=2]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+### 8.Log-normal
+
+Density function: Mean Log = 1, Standard Deviation Log = 1, a = 1, b = 3
+
+```{r}
+library(ggplot2)
+ml <- 1
+      sl <- 1
+      x <- 0:25
+      y <- dlnorm(x, meanlog = ml, sdlog = sl)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+```
+
+Mass function: Mean Log = 1, Standard Deviation Log = 1, a = 1, b = 3
+
+```{r}
+library(ggplot2)
+ml <- 1
+      sl <- 1
+      x <- 0:25
+      y <- dlnorm(x, meanlog = ml, sdlog = sl, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+```
+
+Repartition function: Mean Log = 1, Standard Deviation Log = 1, a = 1, b = 3
+
+```{r}
+library(ggplot2)
+ml <- 1
+      sl <- 1
+      x <- 0:25
+      y <- plnorm(x, meanlog = ml, sdlog = sl)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+```
+
+
+
+### 9.Negative binomial
+
+Density function: Size = 5, Prob = 0.5, a = 2, b = 5
+```{r}
+library(ggplot2)
+
+s <- 5
+      p <- 0.5
+      x <- 0:25
+      y <- dnbinom(x, size = s, prob = p)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=5], y = y[x>=5]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=5], y = y[x>=2 & x<=5]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Size = 5, Prob = 0.5, a = 2, b = 5
+```{r}
+library(ggplot2)
+
+s <- 5
+      p <- 0.5
+      x <- 0:25
+      y <- dnbinom(x, size = s, prob = p, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=5], y = y[x>=5]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=5], y = y[x>=2 & x<=5]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: Size = 5, Prob = 0.5, a = 2, b = 5
+```{r}
+library(ggplot2)
+
+s <- 5
+      p <- 0.5
+      x <- 0:25
+      y <- pnbinom(x, size = s, prob = p)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=5], y = y[x>=5]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=5], y = y[x>=2 & x<=5]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+### 10.Beta
+
+Density function: Shape1 = 10, Shape2 = 1, Ncp = 1, a = 0, b = 1
+
+```{r}
+library(ggplot2)
+s1 <- 10
+      s2 <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- dbeta(x, shape1 = s1, shape2 = s2, ncp = ncp)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0], y = y[x<=0]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0 & x<=1], y = y[x>=0 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Shape1 = 10, Shape2 = 1, Ncp = 1, a = 0, b = 1
+
+```{r}
+library(ggplot2)
+s1 <- 10
+      s2 <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- dbeta(x, shape1 = s1, shape2 = s2, ncp = ncp, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0], y = y[x<=0]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0 & x<=1], y = y[x>=0 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Repartition function: Shape1 = 10, Shape2 = 1, Ncp = 1, a = 0, b = 1
+```{r}
+library(ggplot2)
+s1 <- 10
+      s2 <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- pbeta(x, shape1 = s1, shape2 = s2, ncp = ncp)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=0], y = y[x<=0]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1], y = y[x>=1]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=0 & x<=1], y = y[x>=0 & x<=1]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+### 11.Fisher
+
+Density function: Df1 = 1, Df2 = 1, Ncp = 1, a = 2, b = 5
+```{r}
+library(ggplot2)
+df1 <- 1
+      df2 <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- df(x, df1 = df1,df2 = df2, ncp = ncp)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=5], y = y[x>=5]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=5], y = y[x>=2 & x<=5]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Df1 = 1, Df2 = 1, Ncp = 1, a = 2, b = 5
+```{r}
+library(ggplot2)
+df1 <- 1
+      df2 <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- df(x, df1 = df1,df2 = df2, ncp = ncp, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=5], y = y[x>=5]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=5], y = y[x>=2 & x<=5]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Repartition function: Df1 = 1, Df2 = 1, Ncp = 1, a = 2, b = 5
+```{r}
+library(ggplot2)
+df1 <- 1
+      df2 <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- pf(x, df1 = df1,df2 = df2, ncp = ncp)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=5], y = y[x>=5]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=5], y = y[x>=2 & x<=5]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+### 12.Cauchy
+Density function: Location = 1, Scale = 1, a = 2, b = 4
+```{r}
+library(ggplot2)
+
+l <- 1
+      s <- 1
+      x <- 0:25
+      y <- dcauchy(x, location = l, scale = s)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Location = 1, Scale = 1, a = 2, b = 4
+```{r}
+library(ggplot2)
+
+l <- 1
+      s <- 1
+      x <- 0:25
+      y <- dcauchy(x, location = l, scale = s, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+
+Repartition function: Location = 1, Scale = 1, a = 2, b = 4
+```{r}
+library(ggplot2)
+
+l <- 1
+      s <- 1
+      x <- 0:25
+      y <- pcauchy(x, location = l, scale = s)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+### 13.Chy-Squared
+
+Density function: Df = 1, Ncp = 1, a = 2, b = 4
+```{r}
+library(ggplot2)
+df <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- dchisq(x, df = df, ncp = ncp)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+
+```
+
+Mass function: Df = 1, Ncp = 1, a = 2, b = 4
+```{r}
+library(ggplot2)
+df <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- dchisq(x, df = df, ncp = ncp, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+
+```
+
+
+Repartition function: Df = 1, Ncp = 1, a = 2, b = 4
+```{r}
+library(ggplot2)
+df <- 1
+      ncp <- 1
+      x <- 0:25
+      y <- pchisq(x, df = df, ncp = ncp)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=2], y = y[x<=2]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=4], y = y[x>=4]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=2 & x<=4], y = y[x>=2 & x<=4]), aes(x, y), fill = "blue", alpha = 0.2)
+
+
+```
+
+
+### 14.Laplace
+
+Density function: Mu = 1, Sigma = 1, a = 1, b = 3
+```{r}
+library(ggplot2)
+library(extraDistr)
+m <- 1
+      s <- 1
+      x <- 0:25
+      y <- dlaplace(x, mu = m, sigma = s)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: Mu = 1, Sigma = 1, a = 1, b = 3
+```{r}
+library(ggplot2)
+library(extraDistr)
+m <- 1
+      s <- 1
+      x <- 0:25
+      y <- dlaplace(x, mu = m, sigma = s, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: Mu = 1, Sigma = 1, a = 1, b = 3
+```{r}
+library(ggplot2)
+library(extraDistr)
+m <- 1
+      s <- 1
+      x <- 0:25
+      y <- plaplace(x, mu = m, sigma = s)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+### 15.Pareto
+Density function: A = 1, B = 1, a = 1, b = 3
+```{r}
+library(ggplot2)
+library(extraDistr)
+aP <- 1
+      bP <- 1
+      x <- 0:25
+      y <- dpareto(x, a = aP, b = bP)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Mass function: A = 1, B = 1, a = 1, b = 3
+```{r}
+library(ggplot2)
+library(extraDistr)
+aP <- 1
+      bP <- 1
+      x <- 0:25
+      y <- dpareto(x, a = aP, b = bP, log = TRUE)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
+
+Repartition function: A = 1, B = 1, a = 1, b = 3
+```{r}
+library(ggplot2)
+library(extraDistr)
+aP <- 1
+      bP <- 1
+      x <- 0:25
+      y <- ppareto(x, a = aP, b = bP)
+      ggplot(data.frame(x, y), aes(x, y)) +
+        geom_line() +
+        geom_area(data = data.frame(x = x[x<=1], y = y[x<=1]), aes(x, y), fill = "red", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=3], y = y[x>=3]), aes(x, y), fill = "green", alpha = 0.2) +
+        geom_area(data = data.frame(x = x[x>=1 & x<=3], y = y[x>=1 & x<=3]), aes(x, y), fill = "blue", alpha = 0.2)
+
+```
